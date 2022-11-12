@@ -3,7 +3,7 @@
 ## (1) Electrical Conductance (EC) dataset analysis
 
 <p align="center">
-    <img src="https://github.com/analyzeDataVis/Photonics/blob/Interactive-Charts-with-D3/1_Electrical_Conductance/Task2%20(Curve%20Fitting%20%2B%20Find%20Peak)/Sceenshots/Screenshot_EC_FindPeak.png">
+    <img src="https://github.com/analyzeDataVis/Photonics/blob/main/1_Electrical_Conductance/Task3%20(Frequency%20Organized%20%2B%20Find%20Peak)/Sceenshots/Screenshot_EC_Multi_Files_Find_Peak.png">
 </p>
 
 ### Description :
