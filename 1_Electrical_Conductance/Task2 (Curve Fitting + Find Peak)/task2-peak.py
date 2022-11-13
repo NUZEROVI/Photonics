@@ -180,9 +180,12 @@ class Ui_MainWindow(object):
             V_XY_sheet1.append(y_New[signal.argrelextrema(y_New, np.greater)][0])  # append V_Y-Axis
 
             V_XY_sheet2.append(1 / x_New[signal.argrelextrema(y_New, np.greater)[0]][0])  # append V_X-Axis
-            V_XY_sheet2.append(y_New[signal.argrelextrema(y_New, np.greater)][0] * (1.6 * 1e-19) / 2)  # append V_Y-Axis
-        results_df_sheet1[str(W)] = V_XY_sheet1
-        results_df_sheet2[str(W)] = V_XY_sheet2
+            V_XY_sheet2.append(y_New[signal.argrelextrema(y_New, np.greater)][0] / ((1.6 * 1e-19) / 2))  # append V_Y-Axis
+        results_df_sheet1.insert(len(results_df_sheet1.columns), str(W), V_XY_sheet1,
+                                 True)  # insert by index (diff from task2)
+        results_df_sheet2.insert(len(results_df_sheet2.columns), str(W), V_XY_sheet2,
+                                 True)  # insert by index (diff from task2)
+
 
     def loadFile(self):
         self.excelPath = QFileDialog.getOpenFileName(filter="Excel File (*.xlsx *.xls)")[0]
@@ -211,7 +214,7 @@ class Ui_MainWindow(object):
 
         # Set default volt
         self.txt_v1.setText(str(init._V[0]))  # default val (V = -15)
-        self.txt_v2.setText(str(init._V[151]))  # default val (V = 15)
+        self.txt_v2.setText(str(init._V[-1]))  # default val (V = 15)
         # Set default ploy-degree (4-9)
         self.txt_deg1.setText(str(4))
         self.txt_deg2.setText(str(9))
@@ -228,8 +231,12 @@ class Ui_MainWindow(object):
             # Duplicates element & Get minimum (Volt)
             v_start = indices(init._V, float(self.txt_v1.text()))
             v_end = indices(init._V, float(self.txt_v2.text()))
-            min_V1 = min(v_start)
-            min_V2 = min(v_end)
+            if ((float(self.txt_v1.text()) < 0) and (float(self.txt_v2.text()) > 0)):  # -5 ~ 5
+                min_V1 = min(v_start)
+                min_V2 = min(v_end)
+            else:  # equal or v1 > v2 ..
+                min_V1 = min(v_start)
+                min_V2 = max(v_end)
             # update _V & dfGroups
             init._V = np.array(init._V)[min_V1: (min_V2 + 1)].tolist()
             dfGroups.G1 = pd.DataFrame(dfGroups.G1.to_numpy()[min_V1: (min_V2 + 1)])
