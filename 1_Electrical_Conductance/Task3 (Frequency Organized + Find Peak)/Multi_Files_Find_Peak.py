@@ -229,7 +229,7 @@ class Ui_MainWindow(object):
 
         # Set default volt
         self.txt_v1.setText(str(init._V[0]))  # default val (V = -5)
-        self.txt_v2.setText(str(init._V[151]))  # default val (V = 5)
+        self.txt_v2.setText(str(init._V[-1]))  # default val (V = 5)
         # Set default ploy-degree (4-9)
         self.txt_deg1.setText(str(4))
         self.txt_deg2.setText(str(9))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Task2_GUI.ui'
+# Form implementation generated from reading ui file '.\Final_App2.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -22,16 +22,9 @@ class initVal:
         self._W = []
         self._V = []
         self._Area = 1 * 1e-3
-
-class pdGroups:
-    def __init__(self):
-        self.G1 = pd.DataFrame()
-        self.G2 = pd.DataFrame()
-        self.G3 = pd.DataFrame()
+        self.df1 = pd.DataFrame()
 
 global init
-global dfGroups
-
 
 def indices(lst, item):
     return [i for i, x in enumerate(lst) if x == item]
@@ -186,35 +179,23 @@ class Ui_MainWindow(object):
         results_df_sheet2.insert(len(results_df_sheet2.columns), str(W), V_XY_sheet2,
                                  True)  # insert by index (diff from task2)
 
-
     def loadFile(self):
         self.excelPath = QFileDialog.getOpenFileName(filter="Excel File (*.xlsx *.xls)")[0]
         print(self.excelPath)
         self.txt_file.setText(self.excelPath)
 
-        # 3 dataframes => 304 rows × 64 columns (-15 ~ -15)
-        df1 = pd.read_excel(self.excelPath, sheet_name=None, usecols='A:BL')['DATA']
-        df2 = pd.read_excel(self.excelPath, sheet_name=None, usecols='BN:DY')['DATA']
-        df3 = pd.read_excel(self.excelPath, sheet_name=None, usecols='ED:GO')['DATA']
-
         # Definite Value
         global init
         init = initVal()
-        init._Freq = df1.iloc[1, 1:].tolist()  # 63 columns (1000 ~ 5000000)
-        init._W = (2 * (math.pi) * df1.iloc[1, 1:]).tolist()  # (6283.185307179586 ~　31415926.535897933)
-        init._V = df1.iloc[2:, 0].tolist()  # all V #df1.iloc[2:154, 0].tolist()  # 152 (-15 ~ 15)
+        # Get dataframe dataset
+        init.df1 = pd.read_excel(self.excelPath, index_col=0)
+        init._W = init.df1.index.tolist()  # (6283.185307179586 ~　31415926.535897933)
+        init._V = list(map(float, init.df1.columns.tolist()))  # (-10.0 ~ 10.0 )
         init._Area = 1 * 1e-3
 
-        # 152 rows × 63 columns
-        global dfGroups
-        dfGroups = pdGroups()
-        dfGroups.G1 = df1.iloc[2:, 1:].reset_index(drop=True)
-        dfGroups.G2 = df2.iloc[2:, 1:].reset_index(drop=True)
-        dfGroups.G3 = df3.iloc[2:, 1:].reset_index(drop=True)
-
         # Set default volt
-        self.txt_v1.setText(str(init._V[0]))  # default val (V = -15)
-        self.txt_v2.setText(str(init._V[-1]))  # default val (V = 15)
+        self.txt_v1.setText(str(init._V[0]))  # default val (V = -10.0)
+        self.txt_v2.setText(str(init._V[-1]))  # default val (V = 10.0)
         # Set default ploy-degree (4-9)
         self.txt_deg1.setText(str(4))
         self.txt_deg2.setText(str(9))
@@ -237,10 +218,8 @@ class Ui_MainWindow(object):
             else:  # equal or v1 > v2 ..
                 min_V1 = min(v_start)
                 min_V2 = max(v_end)
-            # update _V & dfGroups
+            # update _V
             init._V = np.array(init._V)[min_V1: (min_V2 + 1)].tolist()
-            dfGroups.G1 = pd.DataFrame(dfGroups.G1.to_numpy()[min_V1: (min_V2 + 1)])
-            dfGroups.G2 = pd.DataFrame(dfGroups.G2.to_numpy()[min_V1: (min_V2 + 1)])
 
             # Get Degree
             deg1 = int(self.txt_deg1.text())
@@ -260,16 +239,12 @@ class Ui_MainWindow(object):
             results_df_sheet1["V"] = title
             results_df_sheet2["V"] = title
 
+            Gp_w_arr = init.df1.to_numpy()
             for i in range(len(init._V)):
                 Gp_W = []
                 _each_W = []
-                for j in range(len(init._Freq)):
-                    Cm = dfGroups.G1.iat[i, j] / init._Area
-                    Gm = dfGroups.G2.iat[i, j] / init._Area
-                    Cox = (dfGroups.G1.iloc[:, j].max()) / init._Area
-
-                    Gp_W.append(
-                        float((init._W[j] * (Cox ** 2) * Gm) / ((Gm ** 2) + (init._W[j] ** 2) * (((Cm - Cox) ** 2)))))
+                for j in range(len(init._W)):
+                    Gp_W.append(float(Gp_w_arr[j, i]))
                     _each_W.append(float(init._W[j]))
                     Gp_W_Results = {
                         "W": _each_W,
@@ -296,7 +271,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Task2 - Peak Coordinate"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "EC - App2"))
         self.label.setText(_translate("MainWindow", "Excel File :"))
         self.btn_load.setText(_translate("MainWindow", "Load"))
         self.label_2.setText(_translate("MainWindow", "Volt :"))

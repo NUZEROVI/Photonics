@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Task1_GUI.ui'
+# Form implementation generated from reading ui file '.\Task2_GUI_C_G.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.3
 #
@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QMessageBox
 import pandas as pd
 import numpy as np
 import math
+from scipy import signal
 import xlsxwriter
 from pathlib import Path
 
@@ -33,14 +34,13 @@ class pdGroups:
 global init
 global dfGroups
 
-
 def indices(lst, item):
     return [i for i, x in enumerate(lst) if x == item]
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(758, 143)
+        MainWindow.resize(758, 162)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -100,25 +100,23 @@ class Ui_MainWindow(object):
         self.txt_v2.setFont(font)
         self.txt_v2.setObjectName("txt_v2")
         self.horizontalLayout_2.addWidget(self.txt_v2)
-        self.btn_cal = QtWidgets.QPushButton(self.centralwidget)
+        self.btn_output = QtWidgets.QPushButton(self.centralwidget)
         font = QtGui.QFont()
         font.setPointSize(18)
-        self.btn_cal.setFont(font)
-        self.btn_cal.setObjectName("btn_cal")
-        self.horizontalLayout_2.addWidget(self.btn_cal)
+        font.setBold(False)
+        font.setWeight(50)
+        self.btn_output.setFont(font)
+        self.btn_output.setObjectName("btn_output")
+        self.horizontalLayout_2.addWidget(self.btn_output)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
         # Bind ui function
         self.btn_load.clicked.connect(self.loadFile)
-        self.btn_cal.clicked.connect(self.calculate)
+        self.btn_output.clicked.connect(self.output_C_G)
 
     def loadFile(self):
         self.excelPaths = QFileDialog.getOpenFileNames(filter="CSV Files (*.csv)")[0]
@@ -164,12 +162,13 @@ class Ui_MainWindow(object):
             dfGroups.G1[init._Freq[i]] = listC
             dfGroups.G2[init._Freq[i]] = listG
 
-        self.txt_v1.setText(str(init._V[0])) # default val (V = -15)
-        self.txt_v2.setText(str(init._V[-1])) # default val (V = 15)
-
-    def calculate(self):
-        # 0. Update "_V" by windows Form (customized Value)
-        # Duplicates element & Get minimum
+        # Set default volt
+        self.txt_v1.setText(str(init._V[0]))  # default val (V = -15)
+        self.txt_v2.setText(str(init._V[-1]))  # default val (V = 15)
+    def output_C_G(self):
+        # 1. "W" in colume[0]
+        # 0. Get customized value (Volt, degree, samples)
+        # Duplicates element & Get minimum (Volt)
         v_start = indices(init._V, float(self.txt_v1.text()))
         v_end = indices(init._V, float(self.txt_v2.text()))
         if ((float(self.txt_v1.text()) < 0) and (float(self.txt_v2.text()) > 0)):  # -5 ~ 5
@@ -178,40 +177,28 @@ class Ui_MainWindow(object):
         else:  # equal or v1 > v2 ..
             min_V1 = min(v_start)
             min_V2 = max(v_end)
-
         # update _V & dfGroups
-        init._V = np.array(init._V)[min_V1: (min_V2+1)].tolist()
-        dfGroups.G1 = pd.DataFrame(dfGroups.G1.to_numpy()[min_V1: (min_V2+1)])
-        dfGroups.G2 = pd.DataFrame(dfGroups.G2.to_numpy()[min_V1: (min_V2+1)])
-
-        # 1. "W" in colume[0]
-        _each_W = []
-        for j in range(len(init._Freq)):
-            _each_W.append(float(init._W[j]))
-
-        results = {
-            "W": sorted(_each_W),
-        }
-        df = pd.DataFrame(results)
-
-        # 2. cal "Gp_W" (append another column) (behind colume[0])
+        df_C = pd.DataFrame()
+        df_G = pd.DataFrame()
+        init._V = np.array(init._V)[min_V1: (min_V2 + 1)].tolist()
         for i in range(len(init._V)):
-            Gp_W = []
-            for j in range(len(init._Freq)):
-                Cm = dfGroups.G1.iat[i, j] / init._Area
-                Gm = dfGroups.G2.iat[i, j] / init._Area
-                Cox = (dfGroups.G1.iloc[:, j].max()) / init._Area
-
-                Gp_W.append(float((init._W[j] * (Cox ** 2) * Gm) / ((Gm ** 2) + (init._W[j] ** 2) * (((Cm - Cox) ** 2)))))
-
-            df.insert(len(df.columns), str(init._V[i]), Gp_W, True)
+            df_C.insert(len(df_C.columns), str(init._V[i]),
+                               dfGroups.G1.to_numpy()[min_V1: (min_V2 + 1)][i], True)
+            df_G.insert(len(df_G.columns), str(init._V[i]),
+                               dfGroups.G2.to_numpy()[min_V1: (min_V2 + 1)][i], True)
+        df_C = df_C.T
+        df_G = df_G.T
+        df_C.columns = sorted(init._Freq)
+        df_G.columns = sorted(init._Freq)
 
         # 3. output results
         try:
-            #df.to_csv('Gp_W_Results(with_Noise).csv', encoding='utf-8', index=False)
-            writer = pd.ExcelWriter('Gp_W_Results(with_Noise).xlsx', engine='xlsxwriter')
-            df.to_excel(writer, sheet_name='Sheet1', index=False)
-            writer.save()
+            writer1 = pd.ExcelWriter('CV.xlsx', engine='xlsxwriter')
+            writer2 = pd.ExcelWriter('GV.xlsx', engine='xlsxwriter')
+            df_C.to_excel(writer1, sheet_name='Sheet1')
+            df_G.to_excel(writer2, sheet_name='Sheet1')
+            writer1.save()
+            writer2.save()
             QMessageBox.information(None, 'Message', 'Finished')
         except:
             print("Output error")
@@ -222,12 +209,12 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Task1 - Calulate \"Gp_W\" (with tolerance)"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Task2 - C_and_G"))
         self.label.setText(_translate("MainWindow", "CSV Files :"))
         self.btn_load.setText(_translate("MainWindow", "Load"))
         self.label_2.setText(_translate("MainWindow", "Volt :"))
         self.label_3.setText(_translate("MainWindow", " ~ "))
-        self.btn_cal.setText(_translate("MainWindow", "Calculate"))
+        self.btn_output.setText(_translate("MainWindow", "CV and GV"))
 
 if __name__ == "__main__":
     import sys
