@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel=stylesheet type="text/css" href="style.css">
+        <script src="https://d3js.org/d3.v5.min.js"></script>        
+    </head>
+    <body>
+        <svg width="600" height="600"></svg>
+        <button type="button" class="removeBtn">Remove</button>
+        <button type="button" class="updateBtn">Update</button>
+
+        <script src="scatter.js" ></script>
+
+        <script>        
+            d3.csv("results.csv").then(data =>{
+                scatterData = data.map(d => {
+                                                return {
+                                                    "W" : +d.W,
+                                                    "Gp_W" : +d.Gp_W,
+                                                };
+                });
+                scatterChart(scatterData);
+            });
+        </script>
+    </body>
+</html>
