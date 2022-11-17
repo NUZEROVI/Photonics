@@ -302,16 +302,16 @@ class Ui_MainWindow(object):
         df = pd.DataFrame(results)
 
         # 2. cal "Gp_W" (append another column) (behind colume[0])
-        for i in range(len(init._V)):
+        init._W = sorted(init._W)
+
+        for i in range(len(init._V)): #len(init._V)
             Gp_W = []
             for j in range(len(init._Freq)):
                 Cm = dfGroups.G1.iat[i, j] / init._Area
                 Gm = dfGroups.G2.iat[i, j] / init._Area
                 Cox = (dfGroups.G1.iloc[:, j].max()) / init._Area
 
-                Gp_W.append(
-                    float((init._W[j] * (Cox ** 2) * Gm) / ((Gm ** 2) + (init._W[j] ** 2) * (((Cm - Cox) ** 2)))))
-
+                Gp_W.append((init._W[j] * math.pow(Cox, 2) * Gm)/(math.pow(Gm, 2) + (math.pow(init._W[j], 2) * math.pow(Cm - Cox, 2))))
             df.insert(len(df.columns), str(init._V[i]), Gp_W, True)
 
         # 3. output results
