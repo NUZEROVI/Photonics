@@ -21,7 +21,7 @@ Output Files :
 - Step 3 - EC - App2
 
 <p align="center">
-    <img src="https://github.com/analyzeDataVis/Photonics/blob/1_Electrical_Conductance/1_Electrical_Conductance/Final%20Task%20(Combine%20ALL%20Tasks)/Sceenshot/App2.png">
+    <img src="https://github.com/analyzeDataVis/Photonics/blob/1_Electrical_Conductance/1_Electrical_Conductance/Final%20Task%20(Combine%20ALL%20Tasks)/Sceenshot/App2_v3%20(readme).png">
 </p>
 
 Input Files : Gp/ω sheet with removal noise dataset (.xlsx)
