@@ -12,5 +12,5 @@
 
 ## App Interface
 <p align="center">
-    <img src="https://github.com/analyzeDataVis/Photonics/blob/2_EC_Curve_Fitting_with_Theoretical_Formula/2_EC_Curve_Fitting_with_Theoretical_Formula/Sceenshot/BestFitApp_V2.png">
+    <img src="https://github.com/analyzeDataVis/Photonics/blob/2_EC_Curve_Fitting_with_Theoretical_Formula/2_EC_Curve_Fitting_with_Theoretical_Formula/Sceenshot/BestFitApp_V3%20(Final).png">
 </p>
